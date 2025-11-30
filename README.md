@@ -47,9 +47,9 @@ El análisis sigue una secuencia lógica de preparación y modelado. Para replic
 4.  **Segmentación (Clustering):**
     *   Preparar los datos de clúster utilizando `Cantidad_vendida`, `Stock`, `Producto_actual_stock`, y `Porcentaje_venta`.
     *   Normalizar los datos utilizando `StandardScaler`.
-    *   Aplicar **KMeans con $k=4$** (seleccionado como el mejor equilibrio entre el Método del Codo y el Coeficiente de Silhouette).
+    *   Aplicar KMeans con $k=4$ (seleccionado como el mejor equilibrio entre el Método del Codo y el Coeficiente de Silhouette).
 5.  **Modelado Predictivo:**
-    *   Ejecutar **Regresión Múltiple (OLS) de forma segmentada** (por cada uno de los 4 clústeres) para evaluar la predicción de `Cantidad_dinero`.
-    *   Ejecutar **Modelos de *Boosting* de forma global** (Gradient Boosting, AdaBoost y XGBoost) para comparar el rendimiento de predicción general.
-6.  **Visualización:** Generar los gráficos de resumen, la matriz de correlación, la interpretación de clústeres, la comparación de modelos de *Boosting* y el **Dashboard Consolidado Final**.
+    *   Ejecutar Regresión Múltiple (OLS) de forma segmentada (por cada uno de los 4 clústeres) para evaluar la predicción de `Cantidad_dinero`.
+    *   Ejecutar Modelos de Boosting de forma global (Gradient Boosting, AdaBoost y XGBoost) para comparar el rendimiento de predicción general.
+6.  **Visualización:** Generar los gráficos de resumen, la matriz de correlación, la interpretación de clústeres, la comparación de modelos de Boosting y el Dashboard Consolidado Final.
 
