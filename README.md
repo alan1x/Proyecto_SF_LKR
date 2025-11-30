@@ -31,7 +31,6 @@ data_raw/
    ├── productos.csv
    └── ventas.csv
 ```
-Los archivos de entrada son:
 *   `categorias.csv`
 *   `clientes.csv`
 *   `productos.csv` (Contiene `Precio_Unitario` y `Stock` inicial)
