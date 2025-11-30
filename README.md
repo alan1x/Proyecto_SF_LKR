@@ -23,9 +23,14 @@ Para ejecutar el análisis, se requiere tener instalado Python y las siguientes 
 ## 2. Estructura de Archivos
 
 Los archivos de datos brutos (`.csv`) deben estar ubicados en la ruta relativa `../data_raw/` para que el script pueda leerlos correctamente.
-
-. ├── principal_modificado.pdf (o .ipynb/py) └── data_raw/ ├── categorias.csv ├── clientes.csv ├── productos.csv ├── ventas.csv └── metodos_pago.csv
-
+```
+data_raw/
+   ├── categorias.csv
+   ├── clientes.csv
+   ├── metodos_pago.csv
+   ├── productos.csv
+   └── ventas.csv
+```
 Los archivos de entrada son:
 *   `categorias.csv`
 *   `clientes.csv`
