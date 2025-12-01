@@ -59,16 +59,16 @@ COLORS = {
     'purple': '#9b59b6',
     'dark': '#2c3e50',
     'light': '#ecf0f1',
-    'clusters': ['#440154', '#31688e', '#35b779', '#fde725'],
-    'clusters_clientes': ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#a65628']
+    'clusters': ['#ff0000', '#31688e', '#61fdff', '#ffff71'],
+    'clusters_clientes': ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#F8FC00']
 }
 
 # Mapeo de colores para clusters de PRODUCTOS
 CLUSTER_PRODUCTO_COLORS = {
-    'Bajo Rendimiento': '#440154',
+    'Bajo Rendimiento': '#ff0000',
     'Alto Stock': '#31688e',
-    'Estrella': '#35b779',
-    'Nicho': '#fde725'
+    'Estrella': '#61fdff',
+    'Nicho': '#ffff71'
 }
 
 # Mapeo fijo de segmentos a colores (para clientes)
@@ -78,7 +78,7 @@ SEGMENTO_COLORS = {
     'Clientes Estables': '#4daf4a',
     'Ocasionales Económicos': '#984ea3',
     'Cazadores de Oferta': '#ff7f00',
-    'Nuevos o Dormidos': '#a65628'
+    'Nuevos o Dormidos': '#F8FC00'
 }
 # =============================================================================
 # CARGA Y PREPARACIÓN DE DATOS
@@ -1313,22 +1313,40 @@ def crear_grafica_categorias():
     return fig
 
 def crear_grafica_metodos_pago():
-    """Gráfica de métodos de pago"""
+    """Gráfica de métodos de pago con labels descriptivos"""
+    # Mapeo de IDs a nombres de métodos de pago
+    METODOS_PAGO_LABELS = {
+        1: 'Efectivo',
+        2: 'Tarjeta de Crédito',
+        3: 'Tarjeta de Débito',
+        4: 'Mercado Pago',
+        5: 'Transferencia'
+    }
+    
+    # Verificar qué columna existe
     if 'Método_Pago' in df.columns:
         metodo_stats = df.groupby('Método_Pago').agg({
             'Cantidad_dinero': 'sum',
             'ID_Venta': 'count'
         }).reset_index()
         metodo_stats.columns = ['Método', 'Ingresos', 'Transacciones']
-    else:
+        # Aplicar mapeo si es numérico
+        if metodo_stats['Método'].dtype in ['int64', 'float64']:
+            metodo_stats['Método'] = metodo_stats['Método'].map(METODOS_PAGO_LABELS).fillna(metodo_stats['Método'].astype(str))
+    elif 'ID_Metodo' in df.columns:
         metodo_stats = df.groupby('ID_Metodo').agg({
             'Cantidad_dinero': 'sum',
             'ID_Venta': 'count'
         }).reset_index()
         metodo_stats.columns = ['Método', 'Ingresos', 'Transacciones']
+        # Aplicar mapeo de IDs a nombres
+        metodo_stats['Método'] = metodo_stats['Método'].map(METODOS_PAGO_LABELS).fillna(metodo_stats['Método'].astype(str))
+    else:
+        # Si no hay columna de método, crear datos vacíos
+        metodo_stats = pd.DataFrame({'Método': ['Sin datos'], 'Ingresos': [0], 'Transacciones': [0]})
     
     fig = go.Figure(go.Pie(
-        labels=metodo_stats['Método'].astype(str),
+        labels=metodo_stats['Método'],
         values=metodo_stats['Ingresos'],
         hole=0.3,
         textinfo='label+percent',
