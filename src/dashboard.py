@@ -1871,7 +1871,7 @@ tab_resumen = dbc.Container([
 tab_productos = dbc.Container([
     dbc.Row([
         dbc.Col([
-            html.H3("Segmentación de Productos (K-Means Clustering)", className="text-center mb-4 mt-3"),
+            html.H3("Segmentación de Productos", className="text-center mb-4 mt-3"),
             html.P("Stock, Cantidad Vendida, Stock Actual y Porcentaje de Rotación", 
                    className="text-center text-muted mb-4"),
             html.Hr()
@@ -1915,6 +1915,10 @@ tab_productos = dbc.Container([
         ], width=4),
     ], className="mb-4 g-3"),
     
+# En tab_productos, agregar después de la sección "Radar y estadísticas" (después del dbc.Row con fig_radar_productos y la tabla de estadísticas):
+
+# ...existing code...
+
     # Radar y estadísticas
     dbc.Row([
         dbc.Col([
@@ -1954,7 +1958,46 @@ tab_productos = dbc.Container([
         ], width=6),
     ], className="mb-4 g-3"),
     
+    # Descripción de segmentos de productos (NUEVA SECCIÓN)
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Descripción de Segmentos de Productos", className="card-title mb-4"),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Div([
+                                html.Span("●", style={'color': CLUSTER_PRODUCTO_COLORS['Estrella'], 'marginRight': '8px'}),
+                                html.Strong("Estrella"),
+                                html.P("Alta rotación y buenas ventas. Productos más rentables del inventario. Mantener stock óptimo y priorizar en promociones.", className="text-muted small mb-3")
+                            ]),
+                            html.Div([
+                                html.Span("●", style={'color': CLUSTER_PRODUCTO_COLORS['Nicho'], 'marginRight': '8px'}),
+                                html.Strong("Nicho"),
+                                html.P("Stock limitado pero demanda específica. Productos especializados con mercado definido. Monitorear para evitar quiebres de stock.", className="text-muted small mb-3")
+                            ]),
+                        ], width=6),
+                        dbc.Col([
+                            html.Div([
+                                html.Span("●", style={'color': CLUSTER_PRODUCTO_COLORS['Alto Stock'], 'marginRight': '8px'}),
+                                html.Strong("Alto Stock"),
+                                html.P("Mucho inventario con rotación moderada. Capital inmovilizado. Aplicar descuentos o promociones para acelerar ventas.", className="text-muted small mb-3")
+                            ]),
+                            html.Div([
+                                html.Span("●", style={'color': CLUSTER_PRODUCTO_COLORS['Bajo Rendimiento'], 'marginRight': '8px'}),
+                                html.Strong("Bajo Rendimiento"),
+                                html.P("Baja rotación y pocas ventas. Evaluar discontinuar o liquidar. Liberar espacio para productos más rentables.", className="text-muted small mb-3")
+                            ]),
+                        ], width=6),
+                    ])
+                ])
+            ], className="shadow-sm border-0")
+        ])
+    ], className="mb-4"),
+    
 ], fluid=True)
+
+# ...existing code...
 
 # =============================================================================
 # LAYOUT - PESTAÑA 3: SEGMENTACIÓN DE CLIENTES
@@ -2389,11 +2432,11 @@ tab_temporal = dbc.Container([
                             dcc.Dropdown(
                                 id='dropdown-modelo-forecast',
                                 options=[
-                                    {'label': '🤖 Auto (Mejor disponible)', 'value': 'auto'},
-                                    {'label': '📈 Prophet (Aditivo)', 'value': 'prophet_default'},
-                                    {'label': '📊 Prophet (Multiplicativo)', 'value': 'prophet_mult'},
-                                    {'label': '🎯 Prophet (Con Regresores)', 'value': 'prophet_reg'},
-                                    {'label': '📉 ARIMA (Estadístico)', 'value': 'arima'},
+                                    {'label': 'Auto (Mejor disponible)', 'value': 'auto'},
+                                    {'label': 'Prophet (Aditivo)', 'value': 'prophet_default'},
+                                    {'label': 'Prophet (Multiplicativo)', 'value': 'prophet_mult'},
+                                    {'label': 'Prophet (Con Regresores)', 'value': 'prophet_reg'},
+                                    {'label': 'ARIMA (Estadístico)', 'value': 'arima'},
                                 ],
                                 value='auto',
                                 clearable=False,
