@@ -47,6 +47,10 @@ except ImportError:
 # CONFIGURACIÓN DE COLORES Y ESTILOS
 # =============================================================================
 
+# =============================================================================
+# CONFIGURACIÓN DE COLORES Y ESTILOS (ACTUALIZAR)
+# =============================================================================
+
 COLORS = {
     'primary': '#3498db',
     'secondary': '#2ecc71',
@@ -56,11 +60,18 @@ COLORS = {
     'dark': '#2c3e50',
     'light': '#ecf0f1',
     'clusters': ['#440154', '#31688e', '#35b779', '#fde725'],
-    # 6 colores consistentes para clusters de clientes
     'clusters_clientes': ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#a65628']
 }
 
-# Mapeo fijo de segmentos a colores (para consistencia)
+# Mapeo de colores para clusters de PRODUCTOS
+CLUSTER_PRODUCTO_COLORS = {
+    'Bajo Rendimiento': '#440154',
+    'Alto Stock': '#31688e',
+    'Estrella': '#35b779',
+    'Nicho': '#fde725'
+}
+
+# Mapeo fijo de segmentos a colores (para clientes)
 SEGMENTO_COLORS = {
     'Premium y Frecuentes': '#e41a1c',
     'Exploradores de Nicho': '#377eb8',
@@ -69,7 +80,6 @@ SEGMENTO_COLORS = {
     'Cazadores de Oferta': '#ff7f00',
     'Nuevos o Dormidos': '#a65628'
 }
-
 # =============================================================================
 # CARGA Y PREPARACIÓN DE DATOS
 # =============================================================================
@@ -221,8 +231,16 @@ def preparar_clusters_clientes(df):
     
     return cliente_stats, kmeans_clientes, scaler_rfm
 
+# =============================================================================
+# MODIFICAR FUNCIÓN entrenar_modelos PARA GUARDAR IDs DE PRODUCTOS
+# =============================================================================
+
+# =============================================================================
+# MODIFICAR FUNCIÓN entrenar_modelos PARA PREDECIR TODOS LOS PRODUCTOS
+# =============================================================================
+
 def entrenar_modelos(df, cluster_data):
-    """Entrena modelos de predicción"""
+    """Entrena modelos de predicción - MODIFICADO para predecir TODOS los productos"""
     df_regression = df.groupby('ID_Producto').agg({
         'Cantidad': 'sum',
         'Cantidad_dinero': 'sum',
@@ -232,61 +250,78 @@ def entrenar_modelos(df, cluster_data):
     }).reset_index()
     
     df_regression = df_regression.merge(
-        cluster_data[['ID_Producto', 'Cluster', 'Stock', 'Cantidad_vendida', 'Porcentaje_venta', 'Producto_actual_stock']], 
+        cluster_data[['ID_Producto', 'Cluster', 'Cluster_Nombre', 'Stock', 'Cantidad_vendida', 'Porcentaje_venta', 'Producto_actual_stock']], 
         on='ID_Producto'
     )
+    
+    # Guardar info de productos ANTES de get_dummies
+    productos_info = df_regression[['ID_Producto', 'Categoría', 'Cluster_Nombre', 'Cantidad_dinero', 'Precio_Unitario', 'Stock']].copy()
+    productos_info.columns = ['ID_Producto', 'Categoria', 'Segmento', 'Ingreso_Real', 'Precio', 'Stock']
+    
+    # Guardar IDs de todos los productos
+    todos_los_ids = df_regression['ID_Producto'].values.copy()
     
     df_regression = pd.get_dummies(df_regression, columns=['Región', 'Categoría'], drop_first=True)
     
     feature_cols = [col for col in df_regression.columns if col not in 
-                   ['ID_Producto', 'Cluster', 'Cantidad_dinero', 'Cantidad_vendida', 'Cantidad']]
+                   ['ID_Producto', 'Cluster', 'Cluster_Nombre', 'Cantidad_dinero', 'Cantidad_vendida', 'Cantidad']]
     
     X = df_regression[feature_cols]
     y = df_regression['Cantidad_dinero']
+    producto_ids = df_regression['ID_Producto'].values
     
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+    # Split para evaluación del modelo (solo para métricas)
+    X_train, X_test, y_train, y_test, ids_train, ids_test = train_test_split(
+        X, y, producto_ids, test_size=0.25, random_state=42
+    )
     
     modelos = {}
     
     # Gradient Boosting
     gb = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=4, random_state=42)
     gb.fit(X_train, y_train)
-    y_pred_gb = gb.predict(X_test)
+    y_pred_gb_test = gb.predict(X_test)
+    y_pred_gb_all = gb.predict(X)  # Predicción para TODOS los productos
     modelos['Gradient Boosting'] = {
         'model': gb,
-        'predictions': y_pred_gb,
+        'predictions': y_pred_gb_test,
+        'predictions_all': y_pred_gb_all,  # Predicciones de todos
         'metrics': {
-            'R2': r2_score(y_test, y_pred_gb),
-            'RMSE': mean_squared_error(y_test, y_pred_gb) ** 0.5,
-            'MAE': mean_absolute_error(y_test, y_pred_gb)
+            'R2': r2_score(y_test, y_pred_gb_test),
+            'RMSE': mean_squared_error(y_test, y_pred_gb_test) ** 0.5,
+            'MAE': mean_absolute_error(y_test, y_pred_gb_test)
         }
     }
     
     # AdaBoost
     ada = AdaBoostRegressor(n_estimators=100, learning_rate=0.1, random_state=42)
     ada.fit(X_train, y_train)
-    y_pred_ada = ada.predict(X_test)
+    y_pred_ada_test = ada.predict(X_test)
+    y_pred_ada_all = ada.predict(X)
     modelos['AdaBoost'] = {
         'model': ada,
-        'predictions': y_pred_ada,
+        'predictions': y_pred_ada_test,
+        'predictions_all': y_pred_ada_all,
         'metrics': {
-            'R2': r2_score(y_test, y_pred_ada),
-            'RMSE': mean_squared_error(y_test, y_pred_ada) ** 0.5,
-            'MAE': mean_absolute_error(y_test, y_pred_ada)
+            'R2': r2_score(y_test, y_pred_ada_test),
+            'RMSE': mean_squared_error(y_test, y_pred_ada_test) ** 0.5,
+            'MAE': mean_absolute_error(y_test, y_pred_ada_test)
         }
     }
     
     # Random Forest
     rf = RandomForestRegressor(n_estimators=100, max_depth=6, random_state=42, n_jobs=-1)
     rf.fit(X_train, y_train)
-    y_pred_rf = rf.predict(X_test)
+    y_pred_rf_test = rf.predict(X_test)
+    y_pred_rf_all = rf.predict(X)
     modelos['Random Forest'] = {
         'model': rf,
-        'predictions': y_pred_rf,
+        'predictions': y_pred_rf_test,
+        'predictions_all': y_pred_rf_all,
         'metrics': {
-            'R2': r2_score(y_test, y_pred_rf),
-            'RMSE': mean_squared_error(y_test, y_pred_rf) ** 0.5,
-            'MAE': mean_absolute_error(y_test, y_pred_rf)
+            'R2': r2_score(y_test, y_pred_rf_test),
+            'RMSE': mean_squared_error(y_test, y_pred_rf_test) ** 0.5,
+            'MAE': mean_absolute_error(y_test, y_pred_rf_test)
         }
     }
     
@@ -294,22 +329,41 @@ def entrenar_modelos(df, cluster_data):
     scaler_svr = StandardScaler()
     X_train_scaled = scaler_svr.fit_transform(X_train)
     X_test_scaled = scaler_svr.transform(X_test)
+    X_all_scaled = scaler_svr.transform(X)
     
     svr = SVR(kernel='rbf', C=100, gamma='scale', epsilon=0.1)
     svr.fit(X_train_scaled, y_train)
-    y_pred_svr = svr.predict(X_test_scaled)
+    y_pred_svr_test = svr.predict(X_test_scaled)
+    y_pred_svr_all = svr.predict(X_all_scaled)
     modelos['SVR'] = {
         'model': svr,
-        'predictions': y_pred_svr,
+        'predictions': y_pred_svr_test,
+        'predictions_all': y_pred_svr_all,
         'metrics': {
-            'R2': r2_score(y_test, y_pred_svr),
-            'RMSE': mean_squared_error(y_test, y_pred_svr) ** 0.5,
-            'MAE': mean_absolute_error(y_test, y_pred_svr)
+            'R2': r2_score(y_test, y_pred_svr_test),
+            'RMSE': mean_squared_error(y_test, y_pred_svr_test) ** 0.5,
+            'MAE': mean_absolute_error(y_test, y_pred_svr_test)
         },
         'scaler': scaler_svr
     }
     
-    return modelos, feature_cols, X_test, y_test
+    # Guardar datos completos para predicciones
+    datos_modelo = {
+        'X_train': X_train,
+        'X_test': X_test,
+        'X_all': X,  # Todas las features
+        'y_train': y_train,
+        'y_test': y_test,
+        'y_all': y,  # Todos los valores reales
+        'ids_train': ids_train,
+        'ids_test': ids_test,
+        'ids_all': todos_los_ids,  # Todos los IDs
+        'feature_cols': feature_cols,
+        'productos_info': productos_info,
+        'df_regression': df_regression
+    }
+    
+    return modelos, feature_cols, X_test, y_test, datos_modelo
 
 def entrenar_skforecast(df_filtrado, forecast_days=30, modelo_tipo='gradient_boosting'):
     """
@@ -788,7 +842,13 @@ cluster_productos, kmeans_productos, scaler_productos = preparar_clusters_produc
 print("Preparando clusters de clientes...")
 cluster_clientes, kmeans_clientes, scaler_clientes = preparar_clusters_clientes(df)
 print("Entrenando modelos predictivos...")
-modelos, feature_cols, X_test, y_test = entrenar_modelos(df, cluster_productos)
+modelos, feature_cols, X_test, y_test, datos_modelo = entrenar_modelos(df, cluster_productos)
+
+# Extraer variables - ahora con TODOS los productos
+ids_test = datos_modelo['ids_test']
+ids_all = datos_modelo['ids_all']  # Todos los IDs
+y_all = datos_modelo['y_all']  # Todos los valores reales
+productos_info = datos_modelo['productos_info']
 
 # =============================================================================
 # CÁLCULOS GLOBALES
@@ -1370,37 +1430,282 @@ def crear_grafica_predicciones_mejor_modelo():
     return fig
 
 
-def crear_grafica_importancia_features():
-    """Gráfica de importancia de características"""
-    if hasattr(modelos[best_model]['model'], 'feature_importances_'):
-        importances = modelos[best_model]['model'].feature_importances_
-        indices = np.argsort(importances)[::-1][:15]  # Top 15
-        
-        fig = go.Figure(go.Bar(
-            y=[feature_cols[i][:20] for i in indices],
-            x=[importances[i] for i in indices],
-            orientation='h',
-            marker=dict(color=COLORS['secondary'])
-        ))
-        fig.update_layout(
-            template='plotly_dark',
-            title=dict(text='Top 15 Features Más Importantes', font=dict(size=16)),
-            xaxis_title='Importancia',
-            margin=dict(l=20, r=20, t=50, b=20),
-            height=350
-        )
-    else:
-        fig = go.Figure()
-        fig.add_annotation(
-            text="El modelo SVR no proporciona importancia de características",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=14)
-        )
-        fig.update_layout(template='plotly_dark', height=350)
+# Reemplazar la función crear_grafica_importancia_features() con esta:
+
+def crear_grafica_top_predicciones():
+    """Top productos mejor y peor predichos - mas util que feature importance"""
+    y_pred_test = modelos[best_model]['predictions']
+    
+    df_pred = pd.DataFrame({
+        'ID_Producto': ids_test,
+        'Valor_Real': y_test.values,
+        'Valor_Predicho': y_pred_test,
+        'Error': y_pred_test - y_test.values,
+        'Error_Abs': np.abs(y_pred_test - y_test.values),
+        'Error_Pct': np.abs((y_pred_test - y_test.values) / (y_test.values + 0.01)) * 100
+    })
+    
+    df_pred = df_pred.merge(productos_info[['ID_Producto', 'Categoria', 'Segmento']], 
+                            on='ID_Producto', how='left')
+    
+    # Top 8 mejor predichos (menor error %)
+    top_mejor = df_pred.nsmallest(5, 'Error_Pct')
+    # Top 8 peor predichos (mayor error %)
+    top_peor = df_pred.nlargest(5, 'Error_Pct')
+    
+    fig = make_subplots(
+        rows=1, cols=2,
+        subplot_titles=['Mejor Predichos', 'Peores Predichos'],
+        horizontal_spacing=0.15
+    )
+    
+    # Mejor predichos
+    fig.add_trace(go.Bar(
+        y=[f"Prod {p}" for p in top_mejor['ID_Producto']],
+        x=top_mejor['Error_Pct'],
+        orientation='h',
+        marker=dict(
+            color='#2ecc71',
+            line=dict(width=1, color='white')
+        ),
+        text=[f'{e:.1f}%' for e in top_mejor['Error_Pct']],
+        textposition='outside',
+        hovertemplate=(
+            '<b>Producto %{customdata[0]}</b><br>'
+            'Categoria: %{customdata[1]}<br>'
+            'Cluster: %{customdata[2]}<br>'
+            'Real: $%{customdata[3]:,.0f}<br>'
+            'Predicho: $%{customdata[4]:,.0f}<br>'
+            'Error: %{x:.1f}%'
+            '<extra></extra>'
+        ),
+        customdata=top_mejor[['ID_Producto', 'Categoria', 'Segmento', 'Valor_Real', 'Valor_Predicho']].values,
+        showlegend=False
+    ), row=1, col=1)
+    
+    # Peor predichos
+    fig.add_trace(go.Bar(
+        y=[f"Prod {p}" for p in top_peor['ID_Producto']],
+        x=top_peor['Error_Pct'],
+        orientation='h',
+        marker=dict(
+            color='#e74c3c',
+            line=dict(width=1, color='white')
+        ),
+        text=[f'{e:.1f}%' for e in top_peor['Error_Pct']],
+        textposition='outside',
+        hovertemplate=(
+            '<b>Producto %{customdata[0]}</b><br>'
+            'Categoria: %{customdata[1]}<br>'
+            'Cluster: %{customdata[2]}<br>'
+            'Real: $%{customdata[3]:,.0f}<br>'
+            'Predicho: $%{customdata[4]:,.0f}<br>'
+            'Error: %{x:.1f}%'
+            '<extra></extra>'
+        ),
+        customdata=top_peor[['ID_Producto', 'Categoria', 'Segmento', 'Valor_Real', 'Valor_Predicho']].values,
+        showlegend=False
+    ), row=1, col=2)
+    
+    fig.update_xaxes(title_text='Error (%)', row=1, col=1)
+    fig.update_xaxes(title_text='Error (%)', row=1, col=2)
+    
+    fig.update_layout(
+        template='plotly_dark',
+        title=dict(text='Productos Mejor y Peor Predichos por el Modelo', font=dict(size=14)),
+        margin=dict(l=20, r=20, t=60, b=20),
+        height=350
+    )
     
     return fig
+# Agregar después de crear_grafica_importancia_features()
 
+# =============================================================================
+# REEMPLAZAR crear_grafica_predicciones_con_productos()
+# =============================================================================
+
+def crear_grafica_predicciones_con_productos():
+    """Grafica de predicciones del mejor modelo - SOLO CONJUNTO DE PRUEBA, coloreado por cluster"""
+    # Usar SOLO predicciones del conjunto de prueba (evitar overfitting)
+    y_pred_test = modelos[best_model]['predictions']
+    
+    # Crear DataFrame con informacion del conjunto de PRUEBA solamente
+    df_pred = pd.DataFrame({
+        'ID_Producto': ids_test,
+        'Valor_Real': y_test.values,
+        'Valor_Predicho': y_pred_test,
+        'Error': y_test.values - y_pred_test,
+        'Error_Abs': np.abs(y_test.values - y_pred_test),
+        'Error_Pct': np.abs((y_test.values - y_pred_test) / (y_test.values + 0.01)) * 100
+    })
+    
+    # Agregar info de productos (categoria y segmento/cluster)
+    df_pred = df_pred.merge(productos_info[['ID_Producto', 'Categoria', 'Segmento', 'Precio']], 
+                            on='ID_Producto', how='left')
+    
+    fig = go.Figure()
+    
+    # Colorear por CLUSTER DE PRODUCTO (Estrella, Nicho, etc.)
+    for cluster_nombre in CLUSTER_PRODUCTO_COLORS.keys():
+        subset = df_pred[df_pred['Segmento'] == cluster_nombre]
+        if len(subset) == 0:
+            continue
+        
+        color = CLUSTER_PRODUCTO_COLORS[cluster_nombre]
+        
+        fig.add_trace(go.Scatter(
+            x=subset['Valor_Real'],
+            y=subset['Valor_Predicho'],
+            mode='markers',
+            name=f'{cluster_nombre} ({len(subset)})',
+            marker=dict(
+                color=color,
+                size=10,
+                opacity=0.7,
+                line=dict(width=1, color='white')
+            ),
+            customdata=subset[['ID_Producto', 'Categoria', 'Segmento', 'Error', 'Error_Pct', 'Precio']].values,
+            hovertemplate=(
+                '<b>Producto %{customdata[0]}</b><br>'
+                'Categoria: %{customdata[1]}<br>'
+                'Cluster: %{customdata[2]}<br>'
+                'Precio Unit: $%{customdata[5]:,.2f}<br>'
+                '<br>'
+                'Real: $%{x:,.0f}<br>'
+                'Predicho: $%{y:,.0f}<br>'
+                'Error: $%{customdata[3]:,.0f} (%{customdata[4]:.1f}%)'
+                '<extra></extra>'
+            )
+        ))
+    
+    # Linea de prediccion perfecta
+    min_val = min(y_test.min(), y_pred_test.min())
+    max_val = max(y_test.max(), y_pred_test.max())
+    fig.add_trace(go.Scatter(
+        x=[min_val, max_val],
+        y=[min_val, max_val],
+        mode='lines',
+        line=dict(color='white', dash='dash', width=2),
+        name='Prediccion Perfecta',
+        hoverinfo='skip'
+    ))
+    
+    fig.update_layout(
+        template='plotly_dark',
+        title=dict(
+            text=f'Predicciones vs Valores Reales - Conjunto de Prueba ({best_model})',
+            font=dict(size=16)
+        ),
+        xaxis_title='Ingreso Real ($)',
+        yaxis_title='Ingreso Predicho ($)',
+        margin=dict(l=20, r=20, t=50, b=20),
+        height=450,
+        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5),
+        hovermode='closest'
+    )
+    return fig
+
+# =============================================================================
+# REEMPLAZAR crear_grafica_error_por_segmento()
+# =============================================================================
+
+def crear_grafica_error_por_segmento():
+    """Analisis de precision del modelo por cluster - SOLO CONJUNTO DE PRUEBA"""
+    y_pred_test = modelos[best_model]['predictions']
+    
+    df_error = pd.DataFrame({
+        'ID_Producto': ids_test,
+        'Valor_Real': y_test.values,
+        'Valor_Predicho': y_pred_test,
+        'Error_Abs': np.abs(y_test.values - y_pred_test),
+        'Error_Pct': np.abs((y_test.values - y_pred_test) / (y_test.values + 0.01)) * 100
+    })
+    
+    df_error = df_error.merge(productos_info[['ID_Producto', 'Categoria', 'Segmento']], 
+                              on='ID_Producto', how='left')
+    
+    # Estadisticas por cluster de producto
+    stats_segmento = df_error.groupby('Segmento').agg({
+        'Error_Pct': 'mean',
+        'Error_Abs': 'mean',
+        'ID_Producto': 'count',
+        'Valor_Real': 'mean'
+    }).reset_index()
+    stats_segmento.columns = ['Segmento', 'MAPE', 'MAE', 'N_Productos', 'Ingreso_Prom']
+    stats_segmento['Precision'] = 100 - stats_segmento['MAPE']
+    stats_segmento = stats_segmento.sort_values('Precision', ascending=True)
+    
+    fig = make_subplots(
+        rows=1, cols=2,
+        subplot_titles=['Precision por Cluster (%)', 'Error vs Ingreso Promedio'],
+        specs=[[{'type': 'bar'}, {'type': 'scatter'}]]
+    )
+    
+    # Colores por cluster de producto
+    colors_seg = [CLUSTER_PRODUCTO_COLORS.get(seg, '#888') for seg in stats_segmento['Segmento']]
+    
+    # Barras de precision
+    fig.add_trace(go.Bar(
+        y=stats_segmento['Segmento'],
+        x=stats_segmento['Precision'],
+        orientation='h',
+        marker=dict(color=colors_seg),
+        text=[f'{p:.1f}%' for p in stats_segmento['Precision']],
+        textposition='outside',
+        hovertemplate='<b>%{y}</b><br>Precision: %{x:.1f}%<br>Productos: %{customdata}<extra></extra>',
+        customdata=stats_segmento['N_Productos'],
+        showlegend=False
+    ), row=1, col=1)
+    
+    # Scatter error vs ingreso
+    fig.add_trace(go.Scatter(
+        x=stats_segmento['Ingreso_Prom'],
+        y=stats_segmento['MAPE'],
+        mode='markers+text',
+        marker=dict(
+            size=stats_segmento['N_Productos']*3 + 10,
+            color=colors_seg,
+            line=dict(width=2, color='white')
+        ),
+        text=stats_segmento['Segmento'],
+        textposition='top center',
+        textfont=dict(size=9),
+        hovertemplate='<b>%{text}</b><br>Ingreso Prom: $%{x:,.0f}<br>Error: %{y:.1f}%<extra></extra>',
+        showlegend=False
+    ), row=1, col=2)
+    
+    fig.update_xaxes(title_text='Precision (%)', row=1, col=1)
+    fig.update_xaxes(title_text='Ingreso Promedio ($)', row=1, col=2)
+    fig.update_yaxes(title_text='Error Promedio (%)', row=1, col=2)
+    
+    fig.update_layout(
+        template='plotly_dark',
+        title=dict(text='Analisis de Precision por Cluster (Conjunto de Prueba)', font=dict(size=16)),
+        margin=dict(l=20, r=20, t=70, b=20),
+        height=380
+    )
+    return fig
+
+def crear_tabla_predicciones_detalle():
+    """Tabla con detalle de predicciones por producto"""
+    y_pred = modelos[best_model]['predictions']
+    
+    df_tabla = pd.DataFrame({
+        'ID_Producto': ids_test,
+        'Real': y_test.values,
+        'Predicho': y_pred,
+        'Error': y_pred - y_test.values,
+        'Error_Pct': ((y_pred - y_test.values) / (y_test.values + 0.01)) * 100
+    })
+    
+    df_tabla = df_tabla.merge(productos_info[['ID_Producto', 'Categoria', 'Segmento', 'Precio']], 
+                              on='ID_Producto', how='left')
+    
+    # Ordenar por error absoluto
+    df_tabla['Error_Abs'] = np.abs(df_tabla['Error'])
+    df_tabla = df_tabla.sort_values('Error_Abs')
+    
+    return df_tabla
 
 def crear_grafica_top_productos():
     """Top 10 productos por ingresos"""
@@ -1469,8 +1774,13 @@ fig_heatmap = crear_grafica_heatmap()
 fig_categorias = crear_grafica_categorias()
 fig_metodos_pago = crear_grafica_metodos_pago()
 fig_comparacion_modelos = crear_grafica_comparacion_modelos()
-fig_predicciones = crear_grafica_predicciones_mejor_modelo()
-fig_importancia = crear_grafica_importancia_features()
+
+# ...existing figures...
+fig_predicciones = crear_grafica_predicciones_con_productos()  # Reemplaza la anterior
+fig_error_segmento = crear_grafica_error_por_segmento()  # Nueva
+
+fig_top_predicciones_modelo = crear_grafica_top_predicciones()
+# ...rest of figures...
 fig_top_productos = crear_grafica_top_productos()
 fig_top_clientes = crear_grafica_top_clientes()
 
@@ -1800,12 +2110,20 @@ tab_clientes = dbc.Container([
 # LAYOUT - PESTAÑA 4: MODELOS PREDICTIVOS
 # =============================================================================
 
+# =============================================================================
+# LAYOUT - PESTAÑA 4: MODELOS PREDICTIVOS (ACTUALIZADA)
+# =============================================================================
+
+# =============================================================================
+# LAYOUT - PESTANA 4: MODELOS PREDICTIVOS (SIN EMOJIS)
+# =============================================================================
+
 tab_modelos = dbc.Container([
     dbc.Row([
         dbc.Col([
-            html.H3("Modelos Predictivos de Ingresos", className="text-center mb-4 mt-3"),
-            html.P("Comparación de algoritmos: Gradient Boosting, AdaBoost, Random Forest y SVR", 
-                   className="text-center text-muted mb-4"),
+            html.H3("Modelos Predictivos de Ingresos por Producto", className="text-center mb-4 mt-3"),
+            #html.P("Predice el ingreso total esperado de un producto basandose en sus caracteristicas", 
+                   #className="text-center text-muted mb-4"),
             html.Hr()
         ])
     ]),
@@ -1815,7 +2133,7 @@ tab_modelos = dbc.Container([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H5("Mejor Modelo", className="card-title"),
+                    html.H6("Mejor Modelo", className="card-title text-muted"),
                     html.H3(best_model, className="text-success mb-0")
                 ])
             ], className="shadow-sm border-0 h-100")
@@ -1823,30 +2141,33 @@ tab_modelos = dbc.Container([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H5("R² Score", className="card-title"),
-                    html.H3(f"{modelos[best_model]['metrics']['R2']:.4f}", className="text-info mb-0")
+                    html.H6("R2 Score", className="card-title text-muted"),
+                    html.H3(f"{modelos[best_model]['metrics']['R2']:.4f}", className="text-info mb-0"),
+                    html.Small(f"Explica {modelos[best_model]['metrics']['R2']*100:.1f}% de la varianza", className="text-muted")
                 ])
             ], className="shadow-sm border-0 h-100")
         ], width=3),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H5("RMSE", className="card-title"),
-                    html.H3(f"{modelos[best_model]['metrics']['RMSE']:,.0f}", className="text-warning mb-0")
+                    html.H6("RMSE", className="card-title text-muted"),
+                    html.H3(f"{modelos[best_model]['metrics']['RMSE']:,.0f}", className="text-warning mb-0"),
+                    html.Small("Error cuadratico medio", className="text-muted")
                 ])
             ], className="shadow-sm border-0 h-100")
         ], width=3),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H5("MAE", className="card-title"),
-                    html.H3(f"{modelos[best_model]['metrics']['MAE']:,.0f}", className="text-danger mb-0")
+                    html.H6("MAE", className="card-title text-muted"),
+                    html.H3(f"{modelos[best_model]['metrics']['MAE']:,.0f}", className="text-danger mb-0"),
+                    html.Small("Error absoluto medio", className="text-muted")
                 ])
             ], className="shadow-sm border-0 h-100")
         ], width=3),
     ], className="mb-4 g-3"),
     
-    # Comparación de modelos
+    # Comparacion de modelos
     dbc.Row([
         dbc.Col([
             dbc.Card([
@@ -1855,19 +2176,113 @@ tab_modelos = dbc.Container([
         ])
     ], className="mb-4"),
     
-    # Predicciones e importancia
+    # Grafica de predicciones con productos identificados
     dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardBody([dcc.Graph(figure=fig_predicciones, config={'displayModeBar': False})])
+                dbc.CardBody([
+                    html.H5("Predicciones por Producto (Conjunto de Prueba)", className="card-title mb-2"),
+                    #html.P("Coloreado por tipo de cluster. Pasa el cursor para ver detalles.", className="text-muted small"),
+                    dcc.Graph(figure=fig_predicciones, config={'displayModeBar': False})
+                ])
             ], className="shadow-sm border-0")
-        ], width=6),
+        ])
+    ], className="mb-4"),
+    
+    # Analisis de error por segmento
+    dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardBody([dcc.Graph(figure=fig_importancia, config={'displayModeBar': False})])
+                dbc.CardBody([
+                    html.H5("Precision del Modelo por Cluster", className="card-title mb-2"),
+                    #html.P("Evalua en que tipos de productos el modelo predice mejor", className="text-muted small"),
+                    dcc.Graph(figure=fig_error_segmento, config={'displayModeBar': False})
+                ])
             ], className="shadow-sm border-0")
-        ], width=6),
+        ], width=7),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Productos Mejor y Peor Predichos", className="card-title mb-2"),
+                    html.P("Identifica donde el modelo acierta y donde falla", className="text-muted small"),
+                    dcc.Graph(figure=fig_top_predicciones_modelo, config={'displayModeBar': False})
+                ])
+            ], className="shadow-sm border-0")
+        ], width=5),
     ], className="mb-4 g-3"),
+    # Simulador de prediccion
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Consultar Prediccion de un Producto", className="card-title mb-3"),
+                    #html.P("Selecciona un producto del conjunto de prueba para ver su prediccion", className="text-muted small mb-3"),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Label("Seleccionar Producto:", className="fw-bold"),
+                            dcc.Dropdown(
+                                id='dropdown-producto-prediccion',
+                                options=[
+                                    {'label': f'Producto {p} - Cat. {c} ({s})', 'value': p}
+                                    for p, c, s in zip(
+                                        productos_info[productos_info['ID_Producto'].isin(ids_test)]['ID_Producto'],
+                                        productos_info[productos_info['ID_Producto'].isin(ids_test)]['Categoria'],
+                                        productos_info[productos_info['ID_Producto'].isin(ids_test)]['Segmento']
+                                    )
+                                ],
+                                placeholder="Selecciona un producto...",
+                                style={'color': '#000'}
+                            )
+                        ], width=6),
+                        dbc.Col([
+                            html.Div(id='resultado-prediccion-producto', className="mt-2")
+                        ], width=6),
+                    ])
+                ])
+            ], className="shadow-sm border-0")
+        ])
+    ], className="mb-4"),
+    
+    # Explicacion del modelo
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Que predice este modelo?", className="card-title mb-3"),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Div([
+                                html.H6("Variable a Predecir (Y)", className="text-success"),
+                                html.P("Ingresos totales por producto", className="mb-1"),
+                                #html.Code("Cantidad_dinero = Suma(Precio x Cantidad)", className="small")
+                            ], className="p-2 border-start border-success border-3")
+                        ], width=4),
+                        dbc.Col([
+                            html.Div([
+                                html.H6("Variables de Entrada (X)", className="text-info"),
+                                html.Ul([
+                                    html.Li("Precio Unitario", className="small"),
+                                    html.Li("Stock inicial y actual", className="small"),
+                                    html.Li("Porcentaje de Rotacion", className="small"),
+                                    html.Li("Region y Categoria", className="small"),
+                                ], className="mb-0 ps-3")
+                            ], className="p-2 border-start border-info border-3")
+                        ], width=4),
+                        dbc.Col([
+                            html.Div([
+                                html.H6("Casos de Uso", className="text-warning"),
+                                html.Ul([
+                                    html.Li("Estimar ingresos de nuevos productos", className="small"),
+                                    html.Li("Optimizar inventario", className="small"),
+                                    html.Li("Planificar promociones", className="small"),
+                                ], className="mb-0 ps-3")
+                            ], className="p-2 border-start border-warning border-3")
+                        ], width=4),
+                    ])
+                ])
+            ], className="shadow-sm border-0 bg-dark")
+        ])
+    ], className="mb-4"),
     
     # Tabla comparativa de modelos
     dbc.Row([
@@ -1879,7 +2294,7 @@ tab_modelos = dbc.Container([
                         html.Thead([
                             html.Tr([
                                 html.Th("Modelo"),
-                                html.Th("R² Score"),
+                                html.Th("R2 Score"),
                                 html.Th("RMSE"),
                                 html.Th("MAE"),
                                 html.Th("Estado")
@@ -1889,13 +2304,14 @@ tab_modelos = dbc.Container([
                             html.Tr([
                                 html.Td(html.Strong(modelo) if modelo == best_model else modelo),
                                 html.Td(f"{modelos[modelo]['metrics']['R2']:.4f}"),
-                                html.Td(f"{modelos[modelo]['metrics']['RMSE']:,.0f}"),
-                                html.Td(f"{modelos[modelo]['metrics']['MAE']:,.0f}"),
+                                html.Td(f"${modelos[modelo]['metrics']['RMSE']:,.0f}"),
+                                html.Td(f"${modelos[modelo]['metrics']['MAE']:,.0f}"),
                                 html.Td(
-                                    dbc.Badge("✓ Mejor", color="success") if modelo == best_model 
-                                    else dbc.Badge("—", color="secondary")
+                                    dbc.Badge("Mejor", color="success") if modelo == best_model 
+                                    else dbc.Badge("-", color="secondary")
                                 )
-                            ]) for modelo in modelos.keys()
+                            ], className="table-success" if modelo == best_model else "") 
+                            for modelo in modelos.keys()
                         ])
                     ], bordered=True, hover=True, responsive=True, striped=True, className="table-dark")
                 ])
@@ -1904,7 +2320,6 @@ tab_modelos = dbc.Container([
     ], className="mb-4"),
     
 ], fluid=True)
-
 # =============================================================================
 # LAYOUT - PESTAÑA 5: ANÁLISIS TEMPORAL
 # =============================================================================
@@ -1944,7 +2359,7 @@ tab_temporal = dbc.Container([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H5("🔮 Pronóstico de Ventas con Prophet", className="card-title mb-3"),
+                    html.H5("Pronóstico de Ventas con Prophet", className="card-title mb-3"),
                     dbc.Row([
                         dbc.Col([
                             html.Label("Días a pronosticar:", className="fw-bold"),
@@ -2166,8 +2581,102 @@ app.layout = dbc.Container([
 # CALLBACKS
 # =============================================================================
 
-# ...existing code...
+# En la sección CALLBACKS, agregar:
 
+# =============================================================================
+# CALLBACK ACTUALIZADO (SIN EMOJIS, SOLO CONJUNTO DE PRUEBA)
+# =============================================================================
+
+@callback(
+    Output('resultado-prediccion-producto', 'children'),
+    Input('dropdown-producto-prediccion', 'value')
+)
+def predecir_producto(id_producto):
+    """Muestra la prediccion para un producto del conjunto de prueba"""
+    if id_producto is None:
+        return html.Div([
+            html.P("Selecciona un producto para ver su prediccion", className="text-muted")
+        ])
+    
+    # Buscar el producto en el conjunto de PRUEBA
+    mask_test = ids_test == id_producto
+    
+    if not mask_test.any():
+        return dbc.Alert("Producto no encontrado en conjunto de prueba", color="warning")
+    
+    # Obtener indice del producto
+    idx = np.where(mask_test)[0][0]
+    valor_real = y_test.values[idx]
+    valor_predicho = modelos[best_model]['predictions'][idx]
+    error = valor_predicho - valor_real
+    error_pct = (error / valor_real) * 100 if valor_real != 0 else 0
+    
+    # Info del producto
+    info = productos_info[productos_info['ID_Producto'] == id_producto].iloc[0]
+    cluster_color = CLUSTER_PRODUCTO_COLORS.get(info['Segmento'], '#888')
+    
+    return dbc.Card([
+        dbc.CardBody([
+            dbc.Row([
+                dbc.Col([
+                    html.H5(f"Producto {id_producto}", className="text-primary mb-0"),
+                ], width=8),
+                dbc.Col([
+                    dbc.Badge(info['Segmento'], style={'backgroundColor': cluster_color}, className="float-end")
+                ], width=4),
+            ], className="mb-3"),
+            dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        html.Small("Categoria", className="text-muted d-block"),
+                        html.Strong(str(info['Categoria']))
+                    ])
+                ], width=4),
+                dbc.Col([
+                    html.Div([
+                        html.Small("Cluster", className="text-muted d-block"),
+                        html.Strong(info['Segmento'])
+                    ])
+                ], width=4),
+                dbc.Col([
+                    html.Div([
+                        html.Small("Precio Unit.", className="text-muted d-block"),
+                        html.Strong(f"${info['Precio']:,.2f}")
+                    ])
+                ], width=4),
+            ], className="mb-3"),
+            html.Hr(),
+            dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        html.H4(f"${valor_real:,.0f}", className="text-success mb-0"),
+                        html.Small("Ingreso Real", className="text-muted")
+                    ], className="text-center")
+                ], width=4),
+                dbc.Col([
+                    html.Div([
+                        html.H4(f"${valor_predicho:,.0f}", className="text-info mb-0"),
+                        html.Small("Prediccion", className="text-muted")
+                    ], className="text-center")
+                ], width=4),
+                dbc.Col([
+                    html.Div([
+                        html.H4(
+                            f"{'+' if error > 0 else ''}{error_pct:.1f}%", 
+                            className=f"{'text-danger' if abs(error_pct) > 20 else 'text-success'} mb-0"
+                        ),
+                        html.Small("Error", className="text-muted")
+                    ], className="text-center")
+                ], width=4),
+            ]),
+            html.Div([
+                html.Small(
+                    "Datos del conjunto de prueba ", 
+                    className="text-muted d-block mt-3 fst-italic"
+                )
+            ])
+        ])
+    ], className="border-0 bg-dark")
 # =============================================================================
 # CALLBACKS
 # =============================================================================
