@@ -1805,7 +1805,7 @@ tab_resumen = dbc.Container([
     # Título de sección
     dbc.Row([
         dbc.Col([
-            html.H3("📊 Resumen Ejecutivo", className="text-center mb-4 mt-3"),
+            html.H3("Resumen Ejecutivo", className="text-center mb-4 mt-3"),
             html.Hr(className="mb-4")
         ])
     ]),
@@ -1872,8 +1872,8 @@ tab_productos = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.H3("Segmentación de Productos (K-Means Clustering)", className="text-center mb-4 mt-3"),
-            html.P("Análisis de productos basado en: Stock, Cantidad Vendida, Stock Actual y Porcentaje de Rotación", 
-                   className="text-center text-muted mb-4"),
+            #html.P("Análisis de productos basado en: Stock, Cantidad Vendida, Stock Actual y Porcentaje de Rotación", 
+            #       className="text-center text-muted mb-4"),
             html.Hr()
         ])
     ]),
@@ -1963,9 +1963,9 @@ tab_productos = dbc.Container([
 tab_clientes = dbc.Container([
     dbc.Row([
         dbc.Col([
-            html.H3("Segmentación de Clientes (Análisis RFM)", className="text-center mb-4 mt-3"),
-            html.P("Análisis basado en: Recencia (última compra), Frecuencia, Valor Monetario y Productos - K=6 Clusters", 
-                   className="text-center text-muted mb-4"),
+            html.H3("Segmentación de Clientes", className="text-center mb-4 mt-3"),
+            #html.P("Análisis basado en: Recencia (", 
+            #       className="text-center text-muted mb-4"),
             html.Hr()
         ])
     ]),
@@ -2418,6 +2418,7 @@ tab_temporal = dbc.Container([
 # =============================================================================
 # LAYOUT - PESTAÑA 6: CONCLUSIONES
 # =============================================================================
+# Calcular valor segmento Premium (con manejo de error si no existe)
 
 # Calcular valor segmento Premium (con manejo de error si no existe)
 valor_premium = 0
@@ -2425,69 +2426,184 @@ if 'Premium y Frecuentes' in cluster_clientes['Segmento'].values:
     valor_premium = cluster_clientes[cluster_clientes['Segmento'] == 'Premium y Frecuentes']['Monetary'].sum()
 
 tab_conclusiones = dbc.Container([
+    # Título principal
     dbc.Row([
         dbc.Col([
             html.H3("📝 Conclusiones y Recomendaciones", className="text-center mb-4 mt-3"),
             html.Hr()
         ])
     ]),
-    
-    # Hallazgos clave
+
+    # Fila: Hallazgos a la izquierda, Oportunidades a la derecha
+    dbc.Row([
+        # Columna 1: Hallazgos
+        dbc.Col([
+            dbc.CardBody([
+                html.H4("Hallazgos Principales", className="card-title text-danger mb-4"),
+
+                dbc.Alert([
+                    html.H5("Segmentación de Productos", className="alert-heading"),
+                    html.P("Se identificaron 4 segmentos de productos. Los productos 'Estrella' representan las mejores oportunidades de negocio con alta rotación."),
+                ], color="info", className="mb-3"),
+
+                dbc.Alert([
+                    html.H5("Segmentación de Clientes", className="alert-heading"),
+                    html.P(f"El análisis reveló 6 segmentos de clientes. Los clientes 'Premium y Frecuentes' generan ${valor_premium:,.0f} en valor total."),
+                ], color="success", className="mb-3"),
+
+                dbc.Alert([
+                    html.H5("Modelo Predictivo", className="alert-heading"),
+                    html.P("El modelo Gradient Boosting logró un R² de 0.8476, permitiendo predecir ingresos con alta precisión."),
+                ], color="warning", className="mb-3"),
+
+                dbc.Alert([
+                    html.H5("Ingresos Totales", className="alert-heading"),
+                    html.P("El negocio generó $103,947.36 en ingresos totales, con 3,000 transacciones de 326 clientes únicos."),
+                ], color="primary", className="mb-3"),
+            ])
+        ], width=6),
+
+        # Columna 2: Áreas de Oportunidad
+        dbc.Col([
+            dbc.CardBody([
+                html.H4("Áreas de Oportunidad", className="card-title text-success mb-4"),
+
+                dbc.Alert([
+                    html.H5("Encuestas a Clientes", className="alert-heading"),
+                    html.P("Detectar razones de compra, satisfacción y promociones preferidas."),
+                ], color="light", className="mb-3"),
+
+                dbc.Alert([
+                    html.H5("Integrar Variables Externas", className="alert-heading"),
+                    html.P("Clima, días festivos, eventos o redes sociales podrían impactar ventas."),
+                ], color="light", className="mb-3"),
+
+                dbc.Alert([
+                    html.H5("Canales de Feedback", className="alert-heading"),
+                    html.P("Usar reseñas, atención al cliente y menciones en redes para conocer percepciones."),
+                ], color="light", className="mb-3"),
+
+                dbc.Alert([
+                    html.H5("Datos de Recompra", className="alert-heading"),
+                    html.P("Analizar tiempo entre compras y productos relacionados."),
+                ], color="light", className="mb-3"),
+            ])
+        ], width=6),
+    ], className="mb-4"),
+
+    # Tabla: Estrategias por Cliente
     dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H4("🎯 Hallazgos Principales", className="card-title text-primary mb-4"),
-                    html.Div([
-                        dbc.Alert([
-                            html.H5("📦 Segmentación de Productos", className="alert-heading"),
-                            html.P("Se identificaron 4 segmentos de productos. Los productos 'Estrella' representan las mejores oportunidades de negocio con alta rotación."),
-                        ], color="info", className="mb-3"),
-                        
-                        dbc.Alert([
-                            html.H5("👥 Segmentación de Clientes", className="alert-heading"),
-                            html.P(f"El análisis reveló 6 segmentos de clientes. Los clientes 'Premium y Frecuentes' generan ${valor_premium:,.0f} en valor total."),
-                        ], color="success", className="mb-3"),
-                        
-                        dbc.Alert([
-                            html.H5("🤖 Modelo Predictivo", className="alert-heading"),
-                            html.P(f"El modelo {best_model} logró un R² de {modelos[best_model]['metrics']['R2']:.4f}, permitiendo predecir ingresos con alta precisión."),
-                        ], color="warning", className="mb-3"),
-                        
-                        dbc.Alert([
-                            html.H5("💰 Ingresos Totales", className="alert-heading"),
-                            html.P(f"El negocio generó ${total_ventas:,.2f} en ingresos totales, con {total_transacciones:,} transacciones de {clientes_unicos:,} clientes únicos."),
-                        ], color="primary", className="mb-3"),
-                    ])
+                    html.H4(" Estrategias por Segmento de Clientes", className="card-title mb-3"),
+                    dbc.Table([
+                        html.Thead([
+                            html.Tr([html.Th("Segmento"), html.Th("Comportamiento"), html.Th("Estrategia")])
+                        ]),
+                        html.Tbody([
+                            html.Tr([
+                                html.Td("Cluster 0 – Premium y Frecuentes"),
+                                html.Td("Compran mucho, seguido y en muchas categorías."),
+                                html.Td("Programa de fidelización exclusivo y beneficios premium.")
+                            ]),
+                            html.Tr([
+                                html.Td("Cluster 1 – Exploradores de Nicho"),
+                                html.Td("Compran en categorías específicas."),
+                                html.Td("Promociones focalizadas para explorar nuevas categorías.")
+                            ]),
+                            html.Tr([
+                                html.Td("Cluster 2 – Clientes Estables"),
+                                html.Td("Consistentes en gasto y frecuencia."),
+                                html.Td("Recompensas por constancia y muestras para ampliar interés.")
+                            ]),
+                            html.Tr([
+                                html.Td("Cluster 3 – Ocasionales Económicos"),
+                                html.Td("Compran poco pero variado."),
+                                html.Td("Campañas de recurrencia y packs por categoría.")
+                            ]),
+                            html.Tr([
+                                html.Td("Cluster 4 – Cazadores de Oferta"),
+                                html.Td("Muy sensibles al precio."),
+                                html.Td("Cupones, descuentos flash y combos tipo “lleva más por menos”.")
+                            ]),
+                            html.Tr([
+                                html.Td("Cluster 5 – Nuevos o Dormidos"),
+                                html.Td("Compran poco o están inactivos."),
+                                html.Td("Campañas de reactivación o bienvenida.")
+                            ]),
+                        ])
+                    ], bordered=True, striped=True, hover=True, className="table-dark")
                 ])
-            ], className="shadow-sm border-0")
-        ], width=6),
-        
+            ])
+        ])
+    ], className="mb-4"),
+
+    # Tabla: Estrategias por Producto
+    dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H4("💡 Recomendaciones Estratégicas", className="card-title text-success mb-4"),
+                    html.H4("Estrategias por Segmento de Productos", className="card-title mb-3"),
+                    dbc.Table([
+                        html.Thead([
+                            html.Tr([html.Th("Segmento"), html.Th("Comportamiento"), html.Th("Estrategia")])
+                        ]),
+                        html.Tbody([
+                            html.Tr([
+                                html.Td("Cluster 0 – Alto Stock y Baja Rotación"),
+                                html.Td("Mucho inventario pero baja venta."),
+                                html.Td("Aplicar promociones o liquidación para acelerar rotación.")
+                            ]),
+                            html.Tr([
+                                html.Td("Cluster 1 – Bajo Stock y Venta Moderada"),
+                                html.Td("Ventas aceptables pero inventario limitado."),
+                                html.Td("Aumentar inventario ligeramente para evitar quiebres.")
+                            ]),
+                            html.Tr([
+                                html.Td("Cluster 2 – Stock y Ventas Balanceadas"),
+                                html.Td("Ventas y stock equilibrados."),
+                                html.Td("Mantener niveles y promover cross-selling.")
+                            ]),
+                            html.Tr([
+                                html.Td("Cluster 3 – Alta Venta y Bajo Stock"),
+                                html.Td("Muy buena rotación, poco inventario."),
+                                html.Td("Reabastecimiento inmediato e incentivar promoción.")
+                            ]),
+                        ])
+                    ], bordered=True, striped=True, hover=True, className="table-dark")
+                ])
+            ])
+        ])
+    ], className="mb-4"),
+
+    # Recomendaciones Generales
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H4("Recomendaciones Generales", className="card-title text-success mb-4"),
                     html.Div([
                         html.Div([
                             html.H6("1. Optimización de Inventario", className="text-info"),
                             html.P("Reducir stock de productos de 'Bajo Rendimiento' y aumentar productos 'Estrella'.", className="text-muted small"),
                         ], className="mb-3 p-2 border-start border-info border-3"),
-                        
+
                         html.Div([
                             html.H6("2. Programa de Fidelización", className="text-success"),
                             html.P("Crear programa VIP para retener clientes 'Premium y Frecuentes' y recuperar 'Nuevos o Dormidos'.", className="text-muted small"),
                         ], className="mb-3 p-2 border-start border-success border-3"),
-                        
+
                         html.Div([
                             html.H6("3. Campañas Segmentadas", className="text-warning"),
                             html.P("Diseñar promociones específicas para cada segmento de cliente según su comportamiento.", className="text-muted small"),
                         ], className="mb-3 p-2 border-start border-warning border-3"),
-                        
+
                         html.Div([
                             html.H6("4. Expansión Regional", className="text-primary"),
                             html.P("Enfocar esfuerzos en las regiones de mayor potencial identificadas en el análisis.", className="text-muted small"),
                         ], className="mb-3 p-2 border-start border-primary border-3"),
-                        
+
                         html.Div([
                             html.H6("5. Predicción de Demanda", className="text-danger"),
                             html.P("Implementar el modelo predictivo para anticipar demanda y optimizar operaciones.", className="text-muted small"),
@@ -2495,15 +2611,30 @@ tab_conclusiones = dbc.Container([
                     ])
                 ])
             ], className="shadow-sm border-0")
-        ], width=6),
-    ], className="mb-4 g-3"),
-    
-    # Métricas finales
+        ])
+    ], className="mb-4"),
+
+    # Conclusión Final
     dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H4("📊 Resumen de Métricas del Análisis", className="card-title mb-4"),
+                    html.H4("Conclusión Final", className="card-title mb-3"),
+                    html.Div([
+                        html.P("El análisis integral de patrones de ventas, apoyado en técnicas de EDA, clustering y modelos predictivos, permitió identificar comportamientos clave de productos y clientes, optimizar la gestión de inventario y mejorar la toma de decisiones comerciales. Los hallazgos obtenidos sirven como base para implementar estrategias de surtido, promociones y segmentación más efectivas. Se recomienda continuar con el monitoreo periódico del comportamiento del mercado, así como enriquecer el análisis con fuentes externas y cualitativas, como encuestas o datos de contexto, que permitan capturar aspectos no reflejados en las ventas históricas.",
+                               className="text-light small")
+                    ])
+                ])
+            ], className="shadow-sm border-0")
+        ])
+    ], className="mb-4"),
+
+    # Métricas Finales
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H4("Resumen de Métricas del Análisis", className="card-title mb-4"),
                     dbc.Row([
                         dbc.Col([
                             html.Div([
@@ -2546,8 +2677,9 @@ tab_conclusiones = dbc.Container([
             ], className="shadow-sm border-0")
         ])
     ], className="mb-4"),
-    
+
 ], fluid=True)
+
 
 # =============================================================================
 # LAYOUT PRINCIPAL
