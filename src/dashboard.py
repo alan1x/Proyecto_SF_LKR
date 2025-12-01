@@ -1872,8 +1872,8 @@ tab_productos = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.H3("Segmentación de Productos (K-Means Clustering)", className="text-center mb-4 mt-3"),
-            #html.P("Análisis de productos basado en: Stock, Cantidad Vendida, Stock Actual y Porcentaje de Rotación", 
-            #       className="text-center text-muted mb-4"),
+            html.P("Stock, Cantidad Vendida, Stock Actual y Porcentaje de Rotación", 
+                   className="text-center text-muted mb-4"),
             html.Hr()
         ])
     ]),
@@ -1964,8 +1964,8 @@ tab_clientes = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.H3("Segmentación de Clientes", className="text-center mb-4 mt-3"),
-            #html.P("Análisis basado en: Recencia (", 
-            #       className="text-center text-muted mb-4"),
+            html.P("Frecuencia de compras, total comprado, gasto total, caterogias distintas, promedio de gasto de compra, región ", 
+                   className="text-center text-muted mb-4"),
             html.Hr()
         ])
     ]),
