@@ -139,7 +139,7 @@ def preparar_clusters_productos(df, productos_vendidos):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(cluster_data[['Cantidad_vendida', 'Stock', 'Producto_actual_stock', 'Porcentaje_venta']])
     
-    kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
+    kmeans = KMeans(n_clusters=4, random_state=92, n_init=10)
     cluster_data['Cluster'] = kmeans.fit_predict(X_scaled)
     
     # Asignar nombres descriptivos a clusters
@@ -181,7 +181,7 @@ def preparar_clusters_clientes(df):
     X_scaled = scaler_rfm.fit_transform(X)
     
     # Clustering con K=6 (como en el notebook)
-    kmeans_clientes = KMeans(n_clusters=6, random_state=42, n_init=10)
+    kmeans_clientes = KMeans(n_clusters=6, random_state=88, n_init=10)
     cliente_stats['Cluster'] = kmeans_clientes.fit_predict(X_scaled)
     
     # Calcular estadísticas por cluster para asignar nombres
@@ -267,13 +267,13 @@ def entrenar_modelos(df, cluster_data):
     
     # Split para evaluación del modelo (solo para métricas)
     X_train, X_test, y_train, y_test, ids_train, ids_test = train_test_split(
-        X, y, producto_ids, test_size=0.25, random_state=42
+        X, y, producto_ids, test_size=0.25, random_state=14
     )
     
     modelos = {}
     
     # Gradient Boosting
-    gb = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=4, random_state=42)
+    gb = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=4, random_state=12)
     gb.fit(X_train, y_train)
     y_pred_gb_test = gb.predict(X_test)
     y_pred_gb_all = gb.predict(X)  # Predicción para TODOS los productos
@@ -289,7 +289,7 @@ def entrenar_modelos(df, cluster_data):
     }
     
     # AdaBoost
-    ada = AdaBoostRegressor(n_estimators=100, learning_rate=0.1, random_state=42)
+    ada = AdaBoostRegressor(n_estimators=100, learning_rate=0.1, random_state=21)
     ada.fit(X_train, y_train)
     y_pred_ada_test = ada.predict(X_test)
     y_pred_ada_all = ada.predict(X)
@@ -305,7 +305,7 @@ def entrenar_modelos(df, cluster_data):
     }
     
     # Random Forest
-    rf = RandomForestRegressor(n_estimators=100, max_depth=6, random_state=42, n_jobs=-1)
+    rf = RandomForestRegressor(n_estimators=100, max_depth=6, random_state=45, n_jobs=-1)
     rf.fit(X_train, y_train)
     y_pred_rf_test = rf.predict(X_test)
     y_pred_rf_all = rf.predict(X)
@@ -389,14 +389,14 @@ def entrenar_skforecast(df_filtrado, forecast_days=30, modelo_tipo='gradient_boo
                 n_estimators=100,
                 max_depth=5,
                 learning_rate=0.1,
-                random_state=42
+                random_state=72
             )
             modelo_nombre = 'Gradient Boosting'
         elif modelo_tipo == 'random_forest':
             regressor = RandomForestRegressor(
                 n_estimators=100,
                 max_depth=10,
-                random_state=42,
+                random_state=30,
                 n_jobs=-1
             )
             modelo_nombre = 'Random Forest'
