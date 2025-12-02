@@ -1834,11 +1834,11 @@ tab_resumen = dbc.Container([
     # KPIs Principales
     dbc.Row([
         dbc.Col([crear_kpi_card("Ingresos Totales", f"${total_ventas:,.2f}", "", "success")], width=2),
-        dbc.Col([crear_kpi_card("Unidades Vendidas", f"{total_unidades:,}", "", "info")], width=2),
-        dbc.Col([crear_kpi_card("Ticket Promedio", f"${ticket_promedio:.2f}", "", "warning")], width=2),
-        dbc.Col([crear_kpi_card("Productos", f"{productos_unicos:,}", "", "primary")], width=2),
-        dbc.Col([crear_kpi_card("Clientes", f"{clientes_unicos:,}", "", "danger")], width=2),
-        dbc.Col([crear_kpi_card("Regiones", f"{regiones_activas:,}", "", "secondary")], width=2),
+        dbc.Col([crear_kpi_card("Unidades Vendidas", f"{total_unidades:,}", "", "success")], width=2),
+        dbc.Col([crear_kpi_card("Ticket Promedio", f"${ticket_promedio:.2f}", "", "success")], width=2),
+        dbc.Col([crear_kpi_card("Productos", f"{productos_unicos:,}", "", "success")], width=2),
+        dbc.Col([crear_kpi_card("Clientes", f"{clientes_unicos:,}", "", "success")], width=2),
+        dbc.Col([crear_kpi_card("Regiones", f"{regiones_activas:,}", "", "success")], width=2),
     ], className="mb-4 g-3"),
     
     # Gráficas principales
@@ -2455,7 +2455,7 @@ tab_temporal = dbc.Container([
                                 options=[
                                     {'label': 'Prophet (Aditivo)', 'value': 'prophet_default'},
                                     {'label': 'Prophet (Multiplicativo)', 'value': 'prophet_mult'},
-                                    {'label': 'Prophet (Con Regresores)', 'value': 'prophet_reg'},
+                                    {'label': 'Prophet (Regresores)', 'value': 'prophet_reg'},
                                     {'label': 'ARIMA (Estadistico)', 'value': 'arima'},
                                 ],
                                 value='prophet_default',
@@ -2955,7 +2955,7 @@ def actualizar_forecast(forecast_days, region, modelo_seleccionado):
     forecast_mean = np.mean(resultado['forecast'])
     forecast_total = np.sum(resultado['forecast'])
     
-    info_items = [dbc.Badge(f"📊 {model_name}", color="primary", className="me-2")]
+    info_items = [dbc.Badge(f"{model_name}", color="primary", className="me-2")]
     
     if 'order' in resultado:
         info_items.append(dbc.Badge(f"Order: {resultado['order']}", color="info", className="me-2"))
