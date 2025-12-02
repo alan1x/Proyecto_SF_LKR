@@ -59,14 +59,14 @@ COLORS = {
     'purple': '#9b59b6',
     'dark': '#2c3e50',
     'light': '#ecf0f1',
-    'clusters': ['#ff0000', '#31688e', '#61fdff', '#ffff71'],
+    'clusters': ['#ff0000', '#4daf4a', '#61fdff', '#ffff71'],
     'clusters_clientes': ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#F8FC00']
 }
 
 # Mapeo de colores para clusters de PRODUCTOS
 CLUSTER_PRODUCTO_COLORS = {
     'Bajo Rendimiento': '#ff0000',
-    'Alto Stock': '#31688e',
+    'Alto Stock': '#4daf4a',
     'Estrella': '#61fdff',
     'Nicho': '#ffff71'
 }
