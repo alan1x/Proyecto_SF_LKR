@@ -2614,24 +2614,24 @@ tab_conclusiones = dbc.Container([
                         ]),
                         html.Tbody([
                             html.Tr([
-                                html.Td("Cluster 0 – Alto Stock y Baja Rotación"),
-                                html.Td("Mucho inventario pero baja venta."),
-                                html.Td("Aplicar promociones o liquidación para acelerar rotación.")
+                                html.Td("Cluster 0 – Bajo Rendimiento"),
+                                html.Td("Baja rotación y pocas ventas."),
+                                html.Td("Evaluar discontinuar o liquidar. Liberar espacio para productos más rentables.")
                             ]),
                             html.Tr([
-                                html.Td("Cluster 1 – Bajo Stock y Venta Moderada"),
-                                html.Td("Ventas aceptables pero inventario limitado."),
-                                html.Td("Aumentar inventario ligeramente para evitar quiebres.")
+                                html.Td("Cluster 1 – Alto Stock"),
+                                html.Td("Mucho inventario con rotación moderada."),
+                                html.Td("Aplicar descuentos o promociones para acelerar ventas.")
                             ]),
                             html.Tr([
-                                html.Td("Cluster 2 – Stock y Ventas Balanceadas"),
-                                html.Td("Ventas y stock equilibrados."),
+                                html.Td("Cluster 2 – Estrella"),
+                                html.Td("Alta rotación y buenas ventas.."),
                                 html.Td("Mantener niveles y promover cross-selling.")
                             ]),
                             html.Tr([
-                                html.Td("Cluster 3 – Alta Venta y Bajo Stock"),
-                                html.Td("Muy buena rotación, poco inventario."),
-                                html.Td("Reabastecimiento inmediato e incentivar promoción.")
+                                html.Td("Cluster 3 – Nicho"),
+                                html.Td("Stock limitado pero demanda específica."),
+                                html.Td(" Monitorear para evitar quiebres de stock.")
                             ]),
                         ])
                     ], bordered=True, striped=True, hover=True, className="table-dark")
