@@ -2186,8 +2186,8 @@ tab_modelos = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.H3("Modelos Predictivos de Ingresos por Producto", className="text-center mb-4 mt-3"),
-            #html.P("Predice el ingreso total esperado de un producto basandose en sus caracteristicas", 
-                   #className="text-center text-muted mb-4"),
+            html.P("Precio unitario, Stock, Stock Actual, Porcentaje de venta, Región, Categoria ", 
+                   className="text-center text-muted mb-4"),
             html.Hr()
         ])
     ]),
