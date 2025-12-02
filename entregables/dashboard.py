@@ -27,10 +27,10 @@ warnings.filterwarnings('ignore')
 try:
     from prophet import Prophet
     PROPHET_AVAILABLE = True
-    print("✅ Prophet disponible")
+    print("Prophet disponible")
 except ImportError:
     PROPHET_AVAILABLE = False
-    print("⚠️ Prophet no instalado. Ejecuta: pip install prophet")
+    print("Prophet no instalado. Ejecuta: pip install prophet")
 
 # Importar skforecast
 try:
@@ -41,14 +41,9 @@ try:
     SKFORECAST_AVAILABLE = True
 except ImportError:
     SKFORECAST_AVAILABLE = False
-    print("⚠️ skforecast no instalado. Ejecuta: pip install skforecast")
 
 # =============================================================================
 # CONFIGURACIÓN DE COLORES Y ESTILOS
-# =============================================================================
-
-# =============================================================================
-# CONFIGURACIÓN DE COLORES Y ESTILOS (ACTUALIZAR)
 # =============================================================================
 
 COLORS = {
@@ -86,11 +81,11 @@ SEGMENTO_COLORS = {
 
 def cargar_datos():
     """Carga y prepara todos los datos necesarios"""
-    categorias = pd.read_csv("../data_raw/categorias.csv")
-    clientes = pd.read_csv("../data_raw/clientes.csv")
-    productos = pd.read_csv("../data_raw/productos.csv")
-    ventas = pd.read_csv("../data_raw/ventas.csv")
-    metodos_pago = pd.read_csv("../data_raw/metodos_pago.csv")
+    categorias = pd.read_csv("data/categorias.csv")
+    clientes = pd.read_csv("data/clientes.csv")
+    productos = pd.read_csv("data/productos.csv")
+    ventas = pd.read_csv("data/ventas.csv")
+    metodos_pago = pd.read_csv("data/metodos_pago.csv")
     
     productos["Precio_Unitario"] = productos["Precio_Unitario"].str.replace(",", ".").astype(float)
     
@@ -1539,11 +1534,6 @@ def crear_grafica_top_predicciones():
     )
     
     return fig
-# Agregar después de crear_grafica_importancia_features()
-
-# =============================================================================
-# REEMPLAZAR crear_grafica_predicciones_con_productos()
-# =============================================================================
 
 def crear_grafica_predicciones_con_productos():
     """Grafica de predicciones del mejor modelo - SOLO CONJUNTO DE PRUEBA, coloreado por cluster"""
@@ -2987,17 +2977,17 @@ def actualizar_forecast(forecast_days, region, modelo_seleccionado):
 
 if __name__ == '__main__':
     print("=" * 60)
-    print("🚀 Dashboard de Análisis Multivariado de Ventas")
+    print("Dashboard de Análisis Multivariado de Ventas")
     print("=" * 60)
-    print(f"📊 Datos cargados: {len(df):,} registros")
-    print(f"📦 Productos: {productos_unicos:,}")
-    print(f"👥 Clientes: {clientes_unicos:,}")
-    print(f"🌍 Regiones: {regiones_activas}")
-    print(f"🎯 Clusters Productos: {cluster_productos['Cluster'].nunique()} grupos")
-    print(f"🎯 Segmentos Clientes: {cluster_clientes['Segmento'].nunique()} grupos")
-    print(f"🤖 Mejor modelo: {best_model} (R²={modelos[best_model]['metrics']['R2']:.4f})")
+    print(f"- Datos cargados: {len(df):,} registros")
+    print(f"- Productos: {productos_unicos:,}")
+    print(f"- Clientes: {clientes_unicos:,}")
+    print(f"- Regiones: {regiones_activas}")
+    print(f"- Clusters Productos: {cluster_productos['Cluster'].nunique()} grupos")
+    print(f"- Segmentos Clientes: {cluster_clientes['Segmento'].nunique()} grupos")
+    print(f"- Mejor modelo: {best_model} (R²={modelos[best_model]['metrics']['R2']:.4f})")
     print("=" * 60)
-    print("\n🌐 Abriendo en http://127.0.0.1:8050")
-    print("⏹️  Presiona Ctrl+C para detener el servidor")
+    print("\nAbriendo en http://127.0.0.1:8050")
+    print("Presiona Ctrl+C para detener la operación")
     print("=" * 60)
     app.run(debug=True, port=8050)
