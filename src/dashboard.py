@@ -941,7 +941,7 @@ def crear_grafica_regiones():
         orientation='h',
         marker=dict(
             color=ventas_region['Ingresos'],
-            colorscale='Blues',
+            colorscale='Greens',
             showscale=False
         ),
         text=[f'${x:,.0f}' for x in ventas_region['Ingresos']],
@@ -1292,7 +1292,7 @@ def crear_grafica_categorias():
         y=ventas_cat['Ingresos'],
         marker=dict(
             color=ventas_cat['Ingresos'],
-            colorscale='Viridis',
+            colorscale='Greens',
             showscale=True,
             colorbar=dict(title='Ingresos')
         ),
@@ -1350,13 +1350,16 @@ def crear_grafica_metodos_pago():
         values=metodo_stats['Ingresos'],
         hole=0.3,
         textinfo='label+percent',
+        textposition='outside',  # Labels afuera del círculo
+        pull=[0.02] * len(metodo_stats),  # Separación ligera entre segmentos
         hovertemplate='<b>%{label}</b><br>Ingresos: $%{value:,.2f}<br>Porcentaje: %{percent}<extra></extra>'
     ))
     fig.update_layout(
         template='plotly_dark',
         title=dict(text='Distribución por Método de Pago', font=dict(size=16)),
         margin=dict(l=20, r=20, t=50, b=20),
-        height=350
+        height=350,
+        showlegend=False  # Ocultar leyenda ya que los labels están afuera
     )
     return fig
 
@@ -1830,12 +1833,12 @@ tab_resumen = dbc.Container([
     
     # KPIs Principales
     dbc.Row([
-        dbc.Col([crear_kpi_card("💰 Ingresos Totales", f"${total_ventas:,.2f}", "💰", "success")], width=2),
-        dbc.Col([crear_kpi_card("📦 Unidades Vendidas", f"{total_unidades:,}", "📦", "info")], width=2),
-        dbc.Col([crear_kpi_card("🎫 Ticket Promedio", f"${ticket_promedio:.2f}", "🎫", "warning")], width=2),
-        dbc.Col([crear_kpi_card("🛒 Productos", f"{productos_unicos:,}", "🛒", "primary")], width=2),
-        dbc.Col([crear_kpi_card("👥 Clientes", f"{clientes_unicos:,}", "👥", "danger")], width=2),
-        dbc.Col([crear_kpi_card("🌍 Regiones", f"{regiones_activas:,}", "🌍", "secondary")], width=2),
+        dbc.Col([crear_kpi_card("Ingresos Totales", f"${total_ventas:,.2f}", "", "success")], width=2),
+        dbc.Col([crear_kpi_card("Unidades Vendidas", f"{total_unidades:,}", "", "info")], width=2),
+        dbc.Col([crear_kpi_card("Ticket Promedio", f"${ticket_promedio:.2f}", "", "warning")], width=2),
+        dbc.Col([crear_kpi_card("Productos", f"{productos_unicos:,}", "", "primary")], width=2),
+        dbc.Col([crear_kpi_card("Clientes", f"{clientes_unicos:,}", "", "danger")], width=2),
+        dbc.Col([crear_kpi_card("Regiones", f"{regiones_activas:,}", "", "secondary")], width=2),
     ], className="mb-4 g-3"),
     
     # Gráficas principales
@@ -2365,8 +2368,8 @@ tab_modelos = dbc.Container([
                             html.Tr([
                                 html.Td(html.Strong(modelo) if modelo == best_model else modelo),
                                 html.Td(f"{modelos[modelo]['metrics']['R2']:.4f}"),
-                                html.Td(f"${modelos[modelo]['metrics']['RMSE']:,.0f}"),
-                                html.Td(f"${modelos[modelo]['metrics']['MAE']:,.0f}"),
+                                html.Td(f"{modelos[modelo]['metrics']['RMSE']:,.0f}"),
+                                html.Td(f"{modelos[modelo]['metrics']['MAE']:,.0f}"),
                                 html.Td(
                                     dbc.Badge("Mejor", color="success") if modelo == best_model 
                                     else dbc.Badge("-", color="secondary")
@@ -2395,8 +2398,8 @@ tab_temporal = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.H3("Análisis Temporal y Estacionalidad", className="text-center mb-4 mt-3"),
-            html.P("Patrones de ventas y pronósticos con Prophet (Facebook/Meta)", 
-                   className="text-center text-muted mb-4"),
+            #html.P("Patrones de ventas y pronósticos con Prophet (Facebook/Meta)", 
+            #       className="text-center text-muted mb-4"),
             html.Hr()
         ])
     ]),
@@ -2450,13 +2453,12 @@ tab_temporal = dbc.Container([
                             dcc.Dropdown(
                                 id='dropdown-modelo-forecast',
                                 options=[
-                                    {'label': 'Auto (Mejor disponible)', 'value': 'auto'},
                                     {'label': 'Prophet (Aditivo)', 'value': 'prophet_default'},
                                     {'label': 'Prophet (Multiplicativo)', 'value': 'prophet_mult'},
                                     {'label': 'Prophet (Con Regresores)', 'value': 'prophet_reg'},
-                                    {'label': 'ARIMA (Estadístico)', 'value': 'arima'},
+                                    {'label': 'ARIMA (Estadistico)', 'value': 'arima'},
                                 ],
-                                value='auto',
+                                value='prophet_default',
                                 clearable=False,
                                 style={'color': '#000'}
                             )
@@ -2490,7 +2492,7 @@ tab_conclusiones = dbc.Container([
     # Título principal
     dbc.Row([
         dbc.Col([
-            html.H3("📝 Conclusiones y Recomendaciones", className="text-center mb-4 mt-3"),
+            html.H3("Conclusiones y Recomendaciones", className="text-center mb-4 mt-3"),
             html.Hr()
         ])
     ]),
@@ -2759,12 +2761,12 @@ app.layout = dbc.Container([
     
     # Tabs
     dbc.Tabs([
-        dbc.Tab(tab_resumen, label="📊 Resumen", tab_id="tab-resumen"),
-        dbc.Tab(tab_productos, label="📦 Productos", tab_id="tab-productos"),
-        dbc.Tab(tab_clientes, label="👥 Clientes", tab_id="tab-clientes"),
-        dbc.Tab(tab_modelos, label="🤖 Modelos", tab_id="tab-modelos"),
-        dbc.Tab(tab_temporal, label="📅 Temporal", tab_id="tab-temporal"),
-        dbc.Tab(tab_conclusiones, label="📝 Conclusiones", tab_id="tab-conclusiones"),
+        dbc.Tab(tab_resumen, label="Resumen", tab_id="tab-resumen"),
+        dbc.Tab(tab_productos, label="Productos", tab_id="tab-productos"),
+        dbc.Tab(tab_clientes, label="Clientes", tab_id="tab-clientes"),
+        dbc.Tab(tab_modelos, label="Modelos", tab_id="tab-modelos"),
+        dbc.Tab(tab_temporal, label="Temporal", tab_id="tab-temporal"),
+        dbc.Tab(tab_conclusiones, label="Conclusiones", tab_id="tab-conclusiones"),
     ], id="tabs", active_tab="tab-resumen", className="mb-3"),
     
     
@@ -2965,11 +2967,11 @@ def actualizar_forecast(forecast_days, region, modelo_seleccionado):
             html.Div(info_items, className="mb-2"),
             dbc.Row([
                 dbc.Col([
-                    html.Small("💰 Promedio diario:", className="text-muted"),
+                    html.Small("Promedio diario:", className="text-muted"),
                     html.Span(f" ${forecast_mean:,.2f}", className="fw-bold text-success")
                 ], width=6),
                 dbc.Col([
-                    html.Small(f"💵 Total ({forecast_days}d):", className="text-muted"),
+                    html.Small(f"Total ({forecast_days}d):", className="text-muted"),
                     html.Span(f" ${forecast_total:,.2f}", className="fw-bold text-warning")
                 ], width=6),
             ])
