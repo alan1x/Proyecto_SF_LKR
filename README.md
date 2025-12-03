@@ -41,7 +41,7 @@ proyecto/
 
 ---
 
-## 📊 Datos Utilizados
+## Datos Utilizados
 
 | Archivo | Descripción |
 |---------|-------------|
