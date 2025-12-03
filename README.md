@@ -1,4 +1,5 @@
 # Análisis de Patrones de Ventas
+
 - Luis Alan Morales Castillo (A01659147)
 - Paulina Díaz Arroyo (A01029592)
 - Rodrigo Jiménez Ortiz (A01029623)
@@ -15,45 +16,42 @@ Este proyecto realiza un análisis integral de datos de ventas de una empresa, a
 
 ---
 
-
 ## Estructura del Proyecto
 
 ```
 proyecto/
 │
-├── data/                          
-│   ├── clientes.csv                  
-│   ├── metodos_pago.csv               
-│   ├── productos.csv                 
-│   ├── productos_vendidos.csv        
-│   └── ventas.csv                    
+├── data/
+│   ├── clientes.csv
+│   ├── metodos_pago.csv
+│   ├── productos.csv
+│   ├── productos_vendidos.csv
+│   └── ventas.csv
 │
-├── notebooks/                     
-│   └── codigo.ipynb                  
+├── notebooks/
+│   └── codigo.ipynb
 │
-├── src/                           
+├── src/
 |   └── dashboard.py
 │
-├── reports/                     
-│   └── presentacion.pdf  
-│   └── resumen_ejecutivo.pdf   
+├── reports/
+│   └── presentacion.pdf
+│   └── Proyecto_SF_LKR (1).pdf
 ```
 
 ---
 
 ## Datos Utilizados
 
-| Archivo | Descripción |
-|---------|-------------|
-| `ventas.csv` | Transacciones de venta con fecha, cliente, producto |
-| `clientes.csv` | Información demográfica y región de clientes |
-| `productos.csv` | Catálogo con precios y categorías |
-| `productos_vendidos.csv` | Stock y cantidades vendidas por producto |
-| `metodos_pago.csv` | Catálogo de métodos de pago |
+| Archivo                  | Descripción                                         |
+| ------------------------ | --------------------------------------------------- |
+| `ventas.csv`             | Transacciones de venta con fecha, cliente, producto |
+| `clientes.csv`           | Información demográfica y región de clientes        |
+| `productos.csv`          | Catálogo con precios y categorías                   |
+| `productos_vendidos.csv` | Stock y cantidades vendidas por producto            |
+| `metodos_pago.csv`       | Catálogo de métodos de pago                         |
 
 ---
-
-
 
 ## Conclusiones Principales
 
@@ -66,13 +64,13 @@ proyecto/
 
 ### Recomendaciones de Negocio
 
-| Área | Recomendación | Impacto Esperado |
-|------|---------------|------------------|
+| Área           | Recomendación                                   | Impacto Esperado    |
+| -------------- | ----------------------------------------------- | ------------------- |
 | **Inventario** | Optimizar stock de productos "Bajo Rendimiento" | -15% costos almacén |
-| **Marketing** | Focalizar en clientes "Premium y Frecuentes" | +20% retención |
-| **Ventas** | Promociones para "Cazadores de Oferta" | +10% conversión |
-| **Producto** | Expandir línea de productos "Estrella" | +25% ingresos |
-| **Expansión** | Replicar estrategias de regiones exitosas | +15% cobertura |
+| **Marketing**  | Focalizar en clientes "Premium y Frecuentes"    | +20% retención      |
+| **Ventas**     | Promociones para "Cazadores de Oferta"          | +10% conversión     |
+| **Producto**   | Expandir línea de productos "Estrella"          | +25% ingresos       |
+| **Expansión**  | Replicar estrategias de regiones exitosas       | +15% cobertura      |
 
 ---
 
@@ -101,21 +99,21 @@ cd notebooks
 jupyter notebook codigo.ipynb
 ```
 
-
 ---
 
 ## Dashboard
 
-| Pestaña | Contenido |
-|---------|-----------|
-| **Resumen** | KPIs principales, tendencias, distribuciones |
-| **Productos** | Clustering 3D, radar de segmentos, tabla detallada |
-| **Clientes** | Clustering 3D, radar de segmentos, tabla detallad |
+| Pestaña        | Contenido                                                     |
+| -------------- | ------------------------------------------------------------- |
+| **Resumen**    | KPIs principales, tendencias, distribuciones                  |
+| **Productos**  | Clustering 3D, radar de segmentos, tabla detallada            |
+| **Clientes**   | Clustering 3D, radar de segmentos, tabla detallad             |
 | **Predicción** | Comparación de modelos, predicciones, importancia de features |
-| **Forecast** | Series temporales, pronósticos|
-| **Conclusión**   | Recomendaciones finales
+| **Forecast**   | Series temporales, pronósticos                                |
+| **Conclusión** | Recomendaciones finales                                       |
 
 ---
+
 ## Contributors
 
 <a href="https://github.com/alan1x/Proyecto_SF_LKR.git/graphs/contributors">
